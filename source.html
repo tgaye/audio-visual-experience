@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio-Visual Experience</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100vh;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 300px;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        #ui-panel.collapsed {
+            transform: translateX(calc(100% - 40px));
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #aaa;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .value-display {
+            font-size: 11px;
+            color: #ccc;
+            margin-top: -8px;
+            margin-bottom: 10px;
+        }
+        
+        #toggle-ui {
+            position: absolute;
+            left: -30px;
+            top: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-right: none;
+            border-radius: 5px 0 0 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        #audio-controls {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #visual-state {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            z-index: 100;
+        }
+    </style>
+
+<base target="_self">
+
+
+    <div id="canvas-container">
+        <div id="loading">Loading audio-visual experience...</div>
+        <div id="visual-state">State: Initializing</div>
+        <div id="ui-panel">
+            <button id="toggle-ui">◀</button>
+            <h2>Audio-Visual Controls</h2>
+            
+            <div class="control-group">
+                <h3>Visual State</h3>
+                <div id="state-buttons">
+                    <button data-state="stellar">Stellar Nursery</button>
+                    <button data-state="plasma">Plasma Storm</button>
+                    <button data-state="neural">Neural Bloom</button>
+                    <button data-state="quantum">Quantum Foam</button>
+                    <button data-state="auto">Auto Transition</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>Particle Controls</h3>
+                <label for="particle-count">Particle Count</label>
+                <input type="range" id="particle-count" min="1000" max="20000" step="1000" value="10000">
+                <div class="value-display" id="particle-count-value">10000</div>
+                
+                <label for="particle-size">Particle Size</label>
+                <input type="range" id="particle-size" min="0.1" max="5.0" step="0.1" value="1.5">
+                <div class="value-display" id="particle-size-value">1.5</div>
+                
+                <label for="particle-speed">Particle Speed</label>
+                <input type="range" id="particle-speed" min="0.1" max="3.0" step="0.1" value="1.0">
+                <div class="value-display" id="particle-speed-value">1.0</div>
+            </div>
+            
+            <div class="control-group">
+                <h3>Audio Response</h3>
+                <label for="bass-response">Bass Response</label>
+                <input type="range" id="bass-response" min="0" max="2" step="0.1" value="1.0">
+                <div class="value-display" id="bass-response-value">1.0</div>
+                
+                <label for="mid-response">Mid Response</label>
+                <input type="range" id="mid-response" min="0" max="2" step="0.1" value="1.0">
+                <div class="value-display" id="mid-response-value">1.0</div>
+                
+                <label for="treble-response">Treble Response</label>
+                <input type="range" id="treble-response" min="0" max="2" step="0.1" value="1.0">
+                <div class="value-display" id="treble-response-value">1.0</div>
+            </div>
+            
+            <div id="audio-controls">
+                <h3>Audio Source</h3>
+                <button id="mic-button">Use Microphone</button>
+                <input type="file" id="audio-upload" accept="audio/*" style="display: none;">
+                <button id="upload-button">Upload Audio</button>
+                <button id="play-button" disabled="">Play</button>
+                <button id="pause-button" disabled="">Pause</button>
+                
+                <label for="volume">Volume</label>
+                <input type="range" id="volume" min="0" max="1" step="0.01" value="0.7">
+                <div class="value-display" id="volume-value">70%</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check WebGL support
+            if (!WebGLRenderingContext) {
+                const container = document.getElementById('canvas-container');
+                container.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">Your browser does not support WebGL. Please try with a modern browser.</div>';
+                throw new Error('WebGL not supported');
+            }
+
+            // Main variables
+            let scene, camera, renderer, particles, particleSystem;
+            let audioContext, analyser, audioSource, dataArray;
+            let isPlaying = false;
+            let currentState = 'stellar';
+            let autoTransition = false;
+            let lastStateChange = 0;
+            let stateDuration = 15000; // 15 seconds per state in auto mode
+            
+            // Audio analysis data
+            const audioData = {
+                bass: 0,
+                mid: 0,
+                treble: 0,
+                volume: 0,
+                beat: false,
+                beatThreshold: 0.35,
+                beatCutoff: 0,
+                beatDecayRate: 0.98
+            };
+            
+            // Shader uniforms
+            const uniforms = {
+                time: { value: 0 },
+                resolution: { value: new THREE.Vector2() },
+                particleSize: { value: 1.5 },
+                bassIntensity: { value: 0 },
+                midIntensity: { value: 0 },
+                trebleIntensity: { value: 0 },
+                beat: { value: 0 },
+                state: { value: 0 }, // 0=stellar, 1=plasma, 2=neural, 3=quantum
+                stateTransition: { value: 0 },
+                mousePos: { value: new THREE.Vector2(0, 0) }
+            };
+            
+            // Initialize Three.js scene
+            function initScene() {
+                // Create scene
+                scene = new THREE.Scene();
+                
+                // Calculate canvas size
+                const maxWidth = 1200;
+                const aspectRatio = 16/9;
+                const width = Math.min(window.innerWidth, maxWidth);
+                const height = width / aspectRatio;
+                
+                // Create camera
+                camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+                camera.position.z = 30;
+                
+                // Create renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
+                renderer.setClearColor(0x000000);
+                
+                // Add canvas to container
+                const container = document.getElementById('canvas-container');
+                container.appendChild(renderer.domElement);
+                
+                // Store resolution in uniforms
+                uniforms.resolution.value.set(width, height);
+                
+                // Handle window resize
+                window.addEventListener('resize', onWindowResize);
+                
+                // Create particles
+                createParticles(10000);
+                
+                // Initialize audio
+                initAudio();
+                
+                // Setup UI controls
+                setupUI();
+                
+                // Hide loading screen
+                setTimeout(() => {
+                    document.getElementById('loading').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loading').style.display = 'none';
+                    }, 500);
+                }, 1000);
+                
+                // Start animation loop
+                animate();
+            }
+            
+            // Create particle system
+            function createParticles(count) {
+                if (particleSystem) {
+                    scene.remove(particleSystem);
+                    particleSystem.geometry.dispose();
+                    particleSystem.material.dispose();
+                }
+                
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+                const colors = new Float32Array(count * 3);
+                const sizes = new Float32Array(count);
+                const randoms = new Float32Array(count * 3);
+                
+                // Initialize particles in a sphere
+                for (let i = 0; i < count; i++) {
+                    // Random position in sphere
+                    const radius = 15 * Math.pow(Math.random(), 1/3);
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    
+                    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                    positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                    positions[i * 3 + 2] = radius * Math.cos(phi);
+                    
+                    // Random color based on position
+                    colors[i * 3] = 0.5 + 0.5 * Math.sin(positions[i * 3] * 0.2);
+                    colors[i * 3 + 1] = 0.5 + 0.5 * Math.sin(positions[i * 3 + 1] * 0.2);
+                    colors[i * 3 + 2] = 0.5 + 0.5 * Math.sin(positions[i * 3 + 2] * 0.2);
+                    
+                    // Random size
+                    sizes[i] = 0.1 + Math.random() * 0.9;
+                    
+                    // Random values for animation
+                    randoms[i * 3] = Math.random();
+                    randoms[i * 3 + 1] = Math.random();
+                    randoms[i * 3 + 2] = Math.random();
+                }
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+                geometry.setAttribute('random', new THREE.BufferAttribute(randoms, 3));
+                
+                // Shader material
+                const material = new THREE.ShaderMaterial({
+                    uniforms: uniforms,
+                    vertexShader: `
+                        uniform float time;
+                        uniform float particleSize;
+                        uniform float bassIntensity;
+                        uniform float midIntensity;
+                        uniform float trebleIntensity;
+                        uniform float beat;
+                        uniform float state;
+                        uniform float stateTransition;
+                        uniform vec2 resolution;
+                        uniform vec2 mousePos;
+                        
+                        attribute float size;
+                        attribute vec3 random;
+                        
+                        varying vec3 vColor;
+                        varying float vIntensity;
+                        
+                        // Noise functions
+                        float hash(float n) { return fract(sin(n) * 1e4); }
+                        float noise(vec3 x) {
+                            vec3 p = floor(x);
+                            vec3 f = fract(x);
+                            f = f * f * (3.0 - 2.0 * f);
+                            
+                            float n = p.x + p.y * 157.0 + 113.0 * p.z;
+                            return mix(
+                                mix(hash(n + 0.0), hash(n + 1.0), f.x),
+                                mix(hash(n + 157.0), hash(n + 158.0), f.x), 
+                                f.y);
+                        }
+                        
+                        // Complex movement patterns based on state
+                        vec3 getStateMovement(vec3 pos, float state, float beat, float bass, float mid, float treble) {
+                            vec3 movement = vec3(0.0);
+                            
+                            // Stellar Nursery (0)
+                            if (state < 0.5) {
+                                float stellarFactor = state * 2.0;
+                                movement.x += sin(time * 0.1 + random.x * 10.0) * 0.5 * stellarFactor;
+                                movement.y += cos(time * 0.12 + random.y * 10.0) * 0.5 * stellarFactor;
+                                movement.z += sin(time * 0.15 + random.z * 10.0) * 0.5 * stellarFactor;
+                                
+                                // Add gentle pulsing with bass
+                                float pulse = bass * 0.5;
+                                movement += normalize(pos) * pulse * stellarFactor;
+                            }
+                            
+                            // Plasma Storm (1)
+                            if (state >= 0.5 && state < 1.5) {
+                                float plasmaFactor = clamp(state - 0.5, 0.0, 1.0) * 2.0;
+                                vec3 noisePos = pos * 0.2 + time * 0.5;
+                                movement.x += noise(noisePos) * 2.0 * plasmaFactor;
+                                movement.y += noise(noisePos + vec3(10.0)) * 2.0 * plasmaFactor;
+                                movement.z += noise(noisePos + vec3(20.0)) * 2.0 * plasmaFactor;
+                                
+                                // Add chaotic response to beats
+                                movement += (random - 0.5) * beat * 5.0 * plasmaFactor;
+                            }
+                            
+                            // Neural Bloom (2)
+                            if (state >= 1.5 && state < 2.5) {
+                                float neuralFactor = clamp(state - 1.5, 0.0, 1.0) * 2.0;
+                                float dist = length(pos);
+                                vec3 dir = normalize(pos);
+                                
+                                // Branching pattern
+                                float angle = atan(dir.y, dir.x) + time * 0.2 * (random.x - 0.5);
+                                float radius = dist * (1.0 + sin(time * 0.3 + random.y * 10.0) * 0.2 * neuralFactor);
+                                
+                                movement.x = cos(angle) * radius - pos.x;
+                                movement.y = sin(angle) * radius - pos.y;
+                                movement.z = sin(time * 0.5 + random.z * 10.0) * 0.5 * neuralFactor;
+                                
+                                // Respond to mids
+                                movement += dir * mid * 3.0 * neuralFactor;
+                            }
+                            
+                            // Quantum Foam (3)
+                            if (state >= 2.5) {
+                                float quantumFactor = clamp(state - 2.5, 0.0, 1.0) * 2.0;
+                                vec3 quantumPos = pos * 5.0 + time;
+                                movement.x += sin(quantumPos.y * 0.5 + time) * cos(quantumPos.z * 0.3) * 0.5 * quantumFactor;
+                                movement.y += cos(quantumPos.x * 0.4 + time * 1.3) * sin(quantumPos.z * 0.2) * 0.5 * quantumFactor;
+                                movement.z += sin(quantumPos.x * 0.7 + time * 0.8) * cos(quantumPos.y * 0.5) * 0.5 * quantumFactor;
+                                
+                                // Micro-interactions with treble
+                                movement += (random - 0.5) * treble * 2.0 * quantumFactor;
+                            }
+                            
+                            return movement;
+                        }
+                        
+                        void main() {
+                            vColor = color;
+                            
+                            // Get original position
+                            vec3 pos = position;
+                            
+                            // Apply state-based movement
+                            vec3 movement = getStateMovement(pos, state, beat, bassIntensity, midIntensity, trebleIntensity);
+                            
+                            // Add mouse interaction
+                            vec2 mouseNorm = mousePos * 2.0 - 1.0;
+                            float mouseDist = distance(pos.xy, mouseNorm * 15.0);
+                            float mouseInfluence = smoothstep(5.0, 0.0, mouseDist);
+                            movement.xy += normalize(pos.xy - mouseNorm * 15.0) * mouseInfluence * 2.0;
+                            
+                            // Apply movement with easing
+                            pos += movement * 0.1;
+                            
+                            // Final position
+                            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+                            gl_PointSize = size * particleSize * (100.0 / -mvPosition.z);
+                            gl_Position = projectionMatrix * mvPosition;
+                            
+                            // Intensity for fragment shader
+                            vIntensity = (bassIntensity + midIntensity + trebleIntensity) / 3.0;
+                        }
+                    `,
+                    fragmentShader: `
+                        uniform float time;
+                        uniform float state;
+                        
+                        varying vec3 vColor;
+                        varying float vIntensity;
+                        
+                        void main() {
+                            // Circular point
+                            vec2 coord = gl_PointCoord - vec2(0.5);
+                            float dist = length(coord);
+                            if (dist > 0.5) discard;
+                            
+                            // Base color
+                            vec3 color = vColor;
+                            
+                            // State-based color adjustments
+                            // Stellar Nursery (0)
+                            if (state < 0.5) {
+                                color = mix(color, vec3(1.0, 0.7, 0.3), pow(vIntensity, 2.0));
+                                color *= smoothstep(0.45, 0.4, dist);
+                            }
+                            // Plasma Storm (1)
+                            else if (state < 1.5) {
+                                color = mix(color, vec3(0.8, 0.2, 0.8), pow(vIntensity, 3.0));
+                                color *= 1.0 - smoothstep(0.3, 0.5, dist);
+                                color += vec3(0.8, 0.5, 0.9) * pow(1.0 - dist, 10.0) * vIntensity;
+                            }
+                            // Neural Bloom (2)
+                            else if (state < 2.5) {
+                                color = mix(color, vec3(0.3, 0.8, 0.5), pow(vIntensity, 1.5));
+                                float edge = smoothstep(0.4, 0.5, dist);
+                                color = mix(color, vec3(0.1, 0.3, 0.2), edge);
+                                color += vec3(0.3, 0.9, 0.6) * (1.0 - edge) * 0.5;
+                            }
+                            // Quantum Foam (3)
+                            else {
+                                color = mix(color, vec3(0.2, 0.5, 1.0), pow(vIntensity, 2.0));
+                                float rings = sin(dist * 20.0 + time * 2.0) * 0.5 + 0.5;
+                                color = mix(color, color * 1.5, rings * (1.0 - dist));
+                            }
+                            
+                            gl_FragColor = vec4(color, 1.0);
+                        }
+                    `,
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    vertexColors: true
+                });
+                
+                particleSystem = new THREE.Points(geometry, material);
+                scene.add(particleSystem);
+            }
+            
+            // Initialize audio context and analyzer
+            function initAudio() {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    
+                    // Setup audio file upload
+                    document.getElementById('upload-button').addEventListener('click', function() {
+                        document.getElementById('audio-upload').click();
+                    });
+                    
+                    document.getElementById('audio-upload').addEventListener('change', function(e) {
+                        if (e.target.files[0]) {
+                            const file = e.target.files[0];
+                            const reader = new FileReader();
+                            reader.onload = function(event) {
+                                audioContext.decodeAudioData(event.target.result, function(buffer) {
+                                    if (audioSource) {
+                                        audioSource.disconnect();
+                                        if (audioSource.stop) audioSource.stop();
+                                    }
+                                    audioSource = audioContext.createBufferSource();
+                                    audioSource.buffer = buffer;
+                                    audioSource.connect(analyser);
+                                    audioSource.connect(audioContext.destination);
+                                    audioSource.loop = true;
+                                    
+                                    // Enable play/pause buttons
+                                    document.getElementById('play-button').disabled = false;
+                                    document.getElementById('pause-button').disabled = false;
+                                    
+                                    // Store for later use
+                                    audioBuffer = buffer;
+                                    
+                                    // Auto-play if already playing
+                                    if (isPlaying) {
+                                        audioSource.start(0);
+                                        document.getElementById('play-button').disabled = true;
+                                        document.getElementById('pause-button').disabled = false;
+                                    }
+                                });
+                            };
+                            reader.readAsArrayBuffer(e.target.files[0]);
+                        }
+                    });
+                    
+                    // Setup microphone input
+                    document.getElementById('mic-button').addEventListener('click', function() {
+                        navigator.mediaDevices.getUserMedia({ audio: true })
+                            .then(function(stream) {
+                                if (audioSource) {
+                                    audioSource.disconnect();
+                                    if (audioSource.stop) audioSource.stop();
+                                }
+                                audioSource = audioContext.createMediaStreamSource(stream);
+                                audioSource.connect(analyser);
+                                
+                                // Disable play/pause for mic
+                                document.getElementById('play-button').disabled = true;
+                                document.getElementById('pause-button').disabled = true;
+                                
+                                // Start animation
+                                isPlaying = true;
+                            })
+                            .catch(function(err) {
+                                console.error('Error accessing microphone:', err);
+                                alert('Could not access microphone. Please check permissions.');
+                            });
+                    });
+                    
+                    // Play/pause controls
+                    document.getElementById('play-button').addEventListener('click', function() {
+                        if (audioBuffer && !isPlaying) {
+                            audioSource = audioContext.createBufferSource();
+                            audioSource.buffer = audioBuffer;
+                            audioSource.connect(analyser);
+                            audioSource.connect(audioContext.destination);
+                            audioSource.loop = true;
+                            audioSource.start(0);
+                            isPlaying = true;
+                            document.getElementById('play-button').disabled = true;
+                            document.getElementById('pause-button').disabled = false;
+                        }
+                    });
+                    
+                    document.getElementById('pause-button').addEventListener('click', function() {
+                        if (audioSource && isPlaying) {
+                            audioSource.stop();
+                            isPlaying = false;
+                            document.getElementById('play-button').disabled = false;
+                            document.getElementById('pause-button').disabled = true;
+                        }
+                    });
+                    
+                    // Volume control
+                    document.getElementById('volume').addEventListener('input', function(e) {
+                        if (audioSource && audioSource.gain) {
+                            audioSource.gain.value = e.target.value;
+                        }
+                        document.getElementById('volume-value').textContent = Math.round(e.target.value * 100) + '%';
+                    });
+                    
+                } catch (e) {
+                    console.error('Audio initialization error:', e);
+                    document.getElementById('audio-controls').innerHTML = '<p style="color:#ff6666">Audio not supported in this browser</p>';
+                }
+            }
+            
+            // Setup UI controls
+            function setupUI() {
+                // Toggle UI panel
+                document.getElementById('toggle-ui').addEventListener('click', function() {
+                    document.getElementById('ui-panel').classList.toggle('collapsed');
+                    this.textContent = document.getElementById('ui-panel').classList.contains('collapsed') ? '▶' : '◀';
+                });
+                
+                // State buttons
+                document.querySelectorAll('#state-buttons button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const state = this.getAttribute('data-state');
+                        if (state === 'auto') {
+                            autoTransition = true;
+                            lastStateChange = Date.now();
+                        } else {
+                            autoTransition = false;
+                            setVisualState(state);
+                        }
+                    });
+                });
+                
+                // Particle controls
+                document.getElementById('particle-count').addEventListener('input', function(e) {
+                    const count = parseInt(e.target.value);
+                    createParticles(count);
+                    document.getElementById('particle-count-value').textContent = count;
+                });
+                
+                document.getElementById('particle-size').addEventListener('input', function(e) {
+                    uniforms.particleSize.value = parseFloat(e.target.value);
+                    document.getElementById('particle-size-value').textContent = e.target.value;
+                });
+                
+                document.getElementById('particle-speed').addEventListener('input', function(e) {
+                    // This would affect movement calculations in shader
+                    document.getElementById('particle-speed-value').textContent = e.target.value;
+                });
+                
+                // Audio response controls
+                document.getElementById('bass-response').addEventListener('input', function(e) {
+                    document.getElementById('bass-response-value').textContent = e.target.value;
+                });
+                
+                document.getElementById('mid-response').addEventListener('input', function(e) {
+                    document.getElementById('mid-response-value').textContent = e.target.value;
+                });
+                
+                document.getElementById('treble-response').addEventListener('input', function(e) {
+                    document.getElementById('treble-response-value').textContent = e.target.value;
+                });
+                
+                // Mouse interaction
+                document.addEventListener('mousemove', function(e) {
+                    const rect = renderer.domElement.getBoundingClientRect();
+                    const x = (e.clientX - rect.left) / rect.width;
+                    const y = (e.clientY - rect.top) / rect.height;
+                    uniforms.mousePos.value.set(x, 1 - y);
+                });
+                
+                // Touch interaction
+                document.addEventListener('touchmove', function(e) {
+                    e.preventDefault();
+                    const rect = renderer.domElement.getBoundingClientRect();
+                    const x = (e.touches[0].clientX - rect.left) / rect.width;
+                    const y = (e.touches[0].clientY - rect.top) / rect.height;
+                    uniforms.mousePos.value.set(x, 1 - y);
+                }, { passive: false });
+            }
+            
+            // Set visual state
+            function setVisualState(state) {
+                currentState = state;
+                document.getElementById('visual-state').textContent = 'State: ' + 
+                    state.charAt(0).toUpperCase() + state.slice(1).replace('-', ' ');
+                
+                // Map state to shader value
+                let stateValue;
+                switch (state) {
+                    case 'stellar': stateValue = 0; break;
+                    case 'plasma': stateValue = 1; break;
+                    case 'neural': stateValue = 2; break;
+                    case 'quantum': stateValue = 3; break;
+                    default: stateValue = 0;
+                }
+                
+                // Smooth transition
+                gsap.to(uniforms.state, {
+                    value: stateValue,
+                    duration: 2.0,
+                    ease: "power2.inOut"
+                });
+            }
+            
+            // Handle window resize
+            function onWindowResize() {
+                const maxWidth = 1200;
+                const aspectRatio = 16/9;
+                const width = Math.min(window.innerWidth, maxWidth);
+                const height = width / aspectRatio;
+                
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+                uniforms.resolution.value.set(width, height);
+            }
+            
+            // Analyze audio data
+            function analyzeAudio() {
+                if (!analyser || !isPlaying) return;
+                
+                analyser.getByteFrequencyData(dataArray);
+                
+                // Calculate frequency bands
+                const bassStart = 0;
+                const bassEnd = 10;
+                const midStart = 11;
+                const midEnd = 50;
+                const trebleStart = 51;
+                const trebleEnd = dataArray.length - 1;
+                
+                let bassSum = 0, midSum = 0, trebleSum = 0;
+                
+                for (let i = bassStart; i <= bassEnd; i++) {
+                    bassSum += dataArray[i];
+                }
+                
+                for (let i = midStart; i <= midEnd; i++) {
+                    midSum += dataArray[i];
+                }
+                
+                for (let i = trebleStart; i <= trebleEnd; i++) {
+                    trebleSum += dataArray[i];
+                }
+                
+                // Normalize and smooth
+                const bassResponse = parseFloat(document.getElementById('bass-response').value);
+                const midResponse = parseFloat(document.getElementById('mid-response').value);
+                const trebleResponse = parseFloat(document.getElementById('treble-response').value);
+                
+                audioData.bass = lerp(audioData.bass, bassSum / (bassEnd - bassStart + 1) / 255 * bassResponse, 0.2);
+                audioData.mid = lerp(audioData.mid, midSum / (midEnd - midStart + 1) / 255 * midResponse, 0.2);
+                audioData.treble = lerp(audioData.treble, trebleSum / (trebleEnd - trebleStart + 1) / 255 * trebleResponse, 0.2);
+                
+                // Beat detection
+                const volume = (bassSum + midSum + trebleSum) / dataArray.length / 255;
+                audioData.beatCutoff = Math.max(volume, audioData.beatCutoff * audioData.beatDecayRate);
+                audioData.beat = (volume > audioData.beatCutoff * audioData.beatThreshold) && (volume > 0.1);
+                
+                // Update shader uniforms
+                uniforms.bassIntensity.value = audioData.bass;
+                uniforms.midIntensity.value = audioData.mid;
+                uniforms.trebleIntensity.value = audioData.treble;
+                uniforms.beat.value = audioData.beat ? 1.0 : 0.0;
+            }
+            
+            // Linear interpolation helper
+            function lerp(a, b, t) {
+                return a + (b - a) * t;
+            }
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Update time
+                uniforms.time.value += 0.01;
+                
+                // Analyze audio
+                analyzeAudio();
+                
+                // Handle auto transitions
+                if (autoTransition && Date.now() - lastStateChange > stateDuration) {
+                    const states = ['stellar', 'plasma', 'neural', 'quantum'];
+                    const currentIndex = states.indexOf(currentState);
+                    const nextIndex = (currentIndex + 1) % states.length;
+                    setVisualState(states[nextIndex]);
+                    lastStateChange = Date.now();
+                    
+                    // Randomize next duration
+                    stateDuration = 10000 + Math.random() * 10000;
+                }
+                
+                // Render scene
+                renderer.render(scene, camera);
+            }
+            
+            // Start everything
+            initScene();
+        });
+    </script>
+
+              
+          
+                
+          
+              
